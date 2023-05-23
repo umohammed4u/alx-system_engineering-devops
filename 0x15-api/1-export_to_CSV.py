@@ -1,26 +1,18 @@
 #!/usr/bin/python3
-"""This script makes a request to a REST API"""
-
+"""Exports to-do list information for a given employee ID to CSV format."""
 import csv
 import requests
 import sys
 
-
 if __name__ == "__main__":
-    id = sys.argv[1]
-    base_url = "https://jsonplaceholder.typicode.com"
-    user_data = requests.get("{}/users/{}".format(base_url, id)).json()
-    todo_data = requests.get("{}/users/{}/todos".format(base_url, id)).json()
-    name = user_data.get('username')
+    user_id = sys.argv[1]
+    url = "https://jsonplaceholder.typicode.com/"
+    user = requests.get(url + "users/{}".format(user_id)).json()
+    username = user.get("username")
+    todos = requests.get(url + "todos", params={"userId": user_id}).json()
 
-    for value in todo_data:
-        # data = '"{}","{}","{}","{}"\n'.format(id,
-        #                                       name,
-        #                                       value.get('completed'),
-        #                                       value.get('title'))
-        data = [id, name, value.get('completed'), value.get('title')]
-        filename = "{}.csv".format(id)
-        with open(filename, 'a', encoding="utf-8") as f:
-            writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-            writer.writerow(data)
-            # f.write(data)
+    with open("{}.csv".format(user_id), "w", newline="") as csvfile:
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+        [writer.writerow(
+            [user_id, username, t.get("completed"), t.get("title")]
+         ) for t in todos]
